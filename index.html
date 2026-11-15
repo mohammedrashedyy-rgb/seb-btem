@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="شعب البدم الثانوية">
+    <title>مدرسة شعب البدم الثانوية - المساعد الذكي</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Cairo & Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        tajawal: ['Tajawal', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            background-color: #f1f5f9;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        /* تحريك السحب والعلم في رسمة المدرسة */
+        @keyframes floatCloud {
+            0%, 100% { transform: translateX(0px); }
+            50% { transform: translateX(12px); }
+        }
+        @keyframes floatCloudReverse {
+            0%, 100% { transform: translateX(0px); }
+            50% { transform: translateX(-14px); }
+        }
+        @keyframes waveFlag {
+            0%, 100% { transform: skewY(0deg); }
+            50% { transform: skewY(4deg); }
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(20, 184, 166, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+        }
+
+        .cloud-1 { animation: floatCloud 7s ease-in-out infinite; }
+        .cloud-2 { animation: floatCloudReverse 9s ease-in-out infinite; }
+        .flag-wave { transform-origin: right center; animation: waveFlag 2.5s ease-in-out infinite; }
+        .active-period-glow { animation: pulseRing 2.5s infinite; }
+
+        /* إخفاء شريط التمرير مع السماح بالتمرير */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* تنسيقات الطباعة */
+        @media print {
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .shadow-lg, .shadow-xl, .shadow-md { box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 pb-24">
+
+    <!-- حاوية التطبيق الرئيسية للهاتف -->
+    <div class="max-w-lg mx-auto min-h-screen bg-slate-50 shadow-2xl relative overflow-hidden">
+
+        <!-- ========================================================= -->
+        <!-- 1. الهيدر العلوي ورسمة المدرسة الكرتونية (SVG)            -->
+        <!-- ========================================================= -->
+        <header class="relative bg-gradient-to-b from-sky-400 via-sky-300 to-emerald-200 pt-4 pb-6 px-4 rounded-b-[2.5rem] shadow-lg overflow-hidden">
+            <!-- شريط علوي مصغر: حالة الصوت والإشعارات -->
+            <div class="flex items-center justify-between mb-2 relative z-10 no-print">
+                <button id="audioUnlockBtn" onclick="unlockAudioSystem()" class="flex items-center gap-2 bg-white/95 hover:bg-white text-teal-800 font-bold text-xs px-3.5 py-2 rounded-full shadow-md transition active:scale-95 border border-teal-100">
+                    <span id="audioStatusIcon" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                    <i class="fa-solid fa-volume-high text-teal-600"></i>
+                    <span id="audioStatusText">اضغط لتفعيل الصوت العالي</span>
+                </button>
+
+                <div class="flex items-center gap-1.5">
+                    <button onclick="requestNotificationPermission()" title="تفعيل إشعارات الهاتف" class="w-9 h-9 rounded-full bg-white/90 hover:bg-white text-sky-700 flex items-center justify-center shadow-md transition active:scale-95">
+                        <i id="notifBellIcon" class="fa-solid fa-bell"></i>
+                    </button>
+                    <button onclick="toggleSimulatorPanel()" title="محاكاة الوقت وتجربة التنبيهات" class="w-9 h-9 rounded-full bg-white/90 hover:bg-white text-indigo-700 flex items-center justify-center shadow-md transition active:scale-95">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- رسمة كرتونية متجهية عالية الجودة لمدرسة شعب البدم الثانوية -->
+            <div class="w-full max-w-sm mx-auto my-1 relative z-10">
+                <svg viewBox="0 0 420 185" class="w-full h-auto drop-shadow-md" xmlns="http://www.w3.org/2000/svg">
+                    <!-- الشمس المشرقة -->
+                    <circle cx="62" cy="38" r="22" fill="#FDE047" />
+                    <circle cx="62" cy="38" r="28" fill="#FEF08A" opacity="0.45" />
+
+                    <!-- السحب المتحركة -->
+                    <g class="cloud-1" fill="#FFFFFF" opacity="0.92">
+                        <circle cx="130" cy="32" r="13" />
+                        <circle cx="145" cy="28" r="16" />
+                        <circle cx="162" cy="33" r="12" />
+                        <rect x="128" y="32" width="36" height="13" rx="6" />
+                    </g>
+                    <g class="cloud-2" fill="#FFFFFF" opacity="0.88">
+                        <circle cx="325" cy="38" r="11" />
+                        <circle cx="338" cy="33" r="14" />
+                        <circle cx="352" cy="38" r="11" />
+                        <rect x="323" y="37" width="31" height="11" rx="5" />
+                    </g>
+
+                    <!-- تلال خضراء في الخلفية -->
+                    <path d="M0 165 Q 100 130 210 155 T 420 150 L 420 185 L 0 185 Z" fill="#4ADE80" />
+                    <path d="M0 172 Q 160 148 310 168 T 420 165 L 420 185 L 0 185 Z" fill="#22C55E" />
+
+                    <!-- سارية العلم الفلسطيني -->
+                    <rect x="208" y="14" width="4" height="48" rx="2" fill="#475569" />
+                    <circle cx="210" cy="13" r="3.5" fill="#FACC15" />
+                    <!-- العلم -->
+                    <g class="flag-wave">
+                        <rect x="172" y="17" width="36" height="7" fill="#0F172A" />
+                        <rect x="172" y="24" width="36" height="7" fill="#FFFFFF" />
+                        <rect x="172" y="31" width="36" height="7" fill="#16A34A" />
+                        <polygon points="208,17 208,38 193,27.5" fill="#DC2626" />
+                    </g>
+
+                    <!-- جناح المدرسة الأيسر -->
+                    <rect x="75" y="92" width="75" height="73" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2" />
+                    <polygon points="70,94 112,72 152,94" fill="#EA580C" />
+                    <!-- نوافذ الجناح الأيسر -->
+                    <rect x="88" y="104" width="18" height="20" rx="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" />
+                    <line x1="97" y1="104" x2="97" y2="124" stroke="#FFFFFF" stroke-width="1.5" />
+                    <rect x="118" y="104" width="18" height="20" rx="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" />
+                    <line x1="127" y1="104" x2="127" y2="124" stroke="#FFFFFF" stroke-width="1.5" />
+                    <rect x="88" y="133" width="18" height="20" rx="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" />
+                    <rect x="118" y="133" width="18" height="20" rx="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" />
+
+                    <!-- جناح المدرسة الأيمن -->
+                    <rect x="270" y="92" width="75" height="73" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2" />
+                    <polygon points="268,94 308,72 350,94" fill="#EA580C" />
+                    <!-- نوافذ الجناح الأيمن -->
+                    <rect x="284" y="104" width="18" height="20" rx="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" />
+                    <line x1="293" y1="104" x2="293" y2="124" stroke="#FFFFFF" stroke-width="1.5" />
+                    <rect x="314" y="104" width="18" height="20" rx="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" />
+                    <line x1="323" y1="104" x2="323" y2="124" stroke="#FFFFFF" stroke-width="1.5" />
+                    <rect x="284" y="133" width="18" height="20" rx="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" />
+                    <rect x="314" y="133" width="18" height="20" rx="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" />
+
+                    <!-- المبنى الرئيسي للمدرسة (الوسط) -->
+                    <rect x="145" y="72" width="130" height="95" rx="8" fill="#FFFBEB" stroke="#D97706" stroke-width="2.5" />
+                    <!-- السقف القرميدي الرئيسي -->
+                    <polygon points="136,74 210,44 284,74" fill="#DC2626" />
+                    <polygon points="144,74 210,49 276,74" fill="#EF4444" />
+
+                    <!-- ساعة المدرسة الدائرية -->
+                    <circle cx="210" cy="68" r="14" fill="#FFFFFF" stroke="#1E293B" stroke-width="2.5" />
+                    <line x1="210" y1="68" x2="210" y2="60" stroke="#EF4444" stroke-width="2" stroke-linecap="round" />
+                    <line x1="210" y1="68" x2="216" y2="68" stroke="#1E293B" stroke-width="2" stroke-linecap="round" />
+                    <circle cx="210" cy="68" r="2" fill="#1E293B" />
+
+                    <!-- لافتة المدرسة على الواجهة -->
+                    <rect x="163" y="88" width="94" height="18" rx="5" fill="#0F766E" />
+                    <text x="210" y="100" font-family="Cairo, sans-serif" font-size="9.5" font-weight="bold" fill="#FFFFFF" text-anchor="middle">مدرسة شعب البدم الثانوية</text>
+
+                    <!-- بوابة المدرسة المقوسة -->
+                    <path d="M190 167 L190 132 A 20 20 0 0 1 230 132 L230 167 Z" fill="#92400E" />
+                    <path d="M194 167 L194 134 A 16 16 0 0 1 226 134 L226 167 Z" fill="#B45309" />
+                    <line x1="210" y1="118" x2="210" y2="167" stroke="#78350F" stroke-width="2" />
+                    <circle cx="205" cy="145" r="2" fill="#FDE047" />
+                    <circle cx="215" cy="145" r="2" fill="#FDE047" />
+
+                    <!-- نوافذ جانبية في المبنى الرئيسي -->
+                    <rect x="158" y="116" width="20" height="22" rx="4" fill="#7DD3FC" stroke="#0284C7" stroke-width="1.5" />
+                    <rect x="242" y="116" width="20" height="22" rx="4" fill="#7DD3FC" stroke="#0284C7" stroke-width="1.5" />
+
+                    <!-- درجات المدخل -->
+                    <rect x="182" y="167" width="56" height="5" rx="2" fill="#CBD5E1" />
+                    <rect x="176" y="172" width="68" height="5" rx="2" fill="#94A3B8" />
+
+                    <!-- أشجار كرتونية مبهجة على الجانبين -->
+                    <!-- شجرة يسرى -->
+                    <rect x="36" y="138" width="8" height="32" rx="3" fill="#78350F" />
+                    <circle cx="40" cy="126" r="18" fill="#16A34A" />
+                    <circle cx="30" cy="132" r="13" fill="#22C55E" />
+                    <circle cx="50" cy="132" r="13" fill="#15803D" />
+
+                    <!-- شجرة يمنى -->
+                    <rect x="376" y="138" width="8" height="32" rx="3" fill="#78350F" />
+                    <circle cx="380" cy="126" r="18" fill="#16A34A" />
+                    <circle cx="370" cy="132" r="13" fill="#22C55E" />
+                    <circle cx="390" cy="132" r="13" fill="#15803D" />
+                </svg>
+            </div>
+
+            <!-- اسم المدرسة والتاريخ والساعة الحية -->
+            <div class="text-center relative z-10 mt-1">
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight drop-shadow-sm">
+                    مدرسة شعب البدم الثانوية
+                </h1>
+                <div class="inline-flex flex-wrap items-center justify-center gap-2 mt-2 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl shadow-sm border border-white">
+                    <span id="currentDayName" class="text-teal-700 font-extrabold text-sm">الأحد</span>
+                    <span class="text-slate-300">|</span>
+                    <span id="currentDateStr" class="text-slate-600 font-semibold text-xs">15 نوفمبر 2026</span>
+                    <span class="text-slate-300">|</span>
+                    <span id="liveDigitalClock" dir="ltr" class="font-mono font-black text-base text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-lg">08:00:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ========================================================= -->
+        <!-- لوحة محاكاة الوقت وتجربة الصوت (قابلة للطي والفتح)         -->
+        <!-- ========================================================= -->
+        <section id="simulatorPanel" class="hidden mx-4 mt-4 bg-indigo-950 text-white rounded-3xl p-4 shadow-xl border border-indigo-700 no-print">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-flask text-amber-400"></i>
+                    <h3 class="font-bold text-sm">لوحة تجربة التنبيهات ومحاكاة الوقت</h3>
+                </div>
+                <button onclick="toggleSimulatorPanel()" class="text-indigo-300 hover:text-white text-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- أزرار اختبار الصوت الفوري -->
+            <div class="grid grid-cols-2 gap-2.5 mb-3">
+                <button onclick="testVoiceAlert('start')" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-2xl shadow flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>تجربة: بدأت الحصة</span>
+                </button>
+                <button onclick="testVoiceAlert('end')" class="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-2xl shadow flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-bell-slash"></i>
+                    <span>تجربة: انتهت الحصة</span>
+                </button>
+            </div>
+
+            <!-- محاكاة ساعة معينة -->
+            <div class="bg-indigo-900/80 p-3 rounded-2xl border border-indigo-800">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-indigo-200">ضبط وقت تجريبي لمعاينة الحصص:</span>
+                    <span id="simModeBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">الوقت الحقيقي</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="time" id="simTimeInput" value="08:00" step="1" class="bg-white text-slate-900 font-bold text-sm rounded-xl px-3 py-1.5 flex-1 focus:outline-none">
+                    <button onclick="activateSimulatedTime()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl transition">
+                        تشغيل
+                    </button>
+                    <button onclick="resetToRealTime()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-3 py-2 rounded-xl transition">
+                        حقيقي
+                    </button>
+                </div>
+                <!-- اختصارات سريعة لأوقات الحصص -->
+                <div class="flex flex-wrap gap-1.5 mt-2.5">
+                    <button onclick="quickSim('07:59:56')" class="text-[11px] bg-indigo-800 hover:bg-indigo-700 px-2 py-1 rounded-lg">قبل 1 (07:59:56)</button>
+                    <button onclick="quickSim('08:39:56')" class="text-[11px] bg-indigo-800 hover:bg-indigo-700 px-2 py-1 rounded-lg">نهاية 1 (08:39:56)</button>
+                    <button onclick="quickSim('10:55:00')" class="text-[11px] bg-indigo-800 hover:bg-indigo-700 px-2 py-1 rounded-lg">الاستراحة (10:55)</button>
+                    <button onclick="quickSim('11:50:00')" class="text-[11px] bg-indigo-800 hover:bg-indigo-700 px-2 py-1 rounded-lg">الحصة 6 (11:50)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 2. بطاقة الحالة الآن والعداد التنازلي للحصة               -->
+        <!-- ========================================================= -->
+        <main class="px-4 mt-4 space-y-5">
+            <section id="liveStatusCard" class="bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 text-white rounded-3xl p-5 shadow-xl relative overflow-hidden transition-all duration-500">
+                <!-- دوائر زخرفية شفافة -->
+                <div class="absolute -left-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+                <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-emerald-400/10 rounded-full blur-xl"></div>
+
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">
+                            <span class="w-2 h-2 rounded-full bg-emerald-300 animate-ping"></span>
+                            <span id="statusBadgeText">الحالة الآن</span>
+                        </span>
+                        <span id="periodTimeRange" dir="ltr" class="text-xs font-mono font-bold bg-black/20 px-3 py-1 rounded-full text-teal-100">
+                            08:00 - 08:40
+                        </span>
+                    </div>
+
+                    <!-- اسم الحصة الحالية -->
+                    <div class="flex items-end justify-between gap-3 my-3">
+                        <div>
+                            <h2 id="currentPeriodTitle" class="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+                                الحصة الأولى
+                            </h2>
+                            <p id="currentTeacherSubject" class="text-teal-100 font-bold text-sm mt-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-chalkboard-user text-amber-300"></i>
+                                <span>اختر اسم المعلم لعرض مادته الآن</span>
+                            </p>
+                        </div>
+
+                        <!-- العداد التنازلي المتبقي -->
+                        <div class="text-left bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl px-3.5 py-2 min-w-[112px] text-center shadow-inner">
+                            <span class="block text-[11px] text-teal-100 font-semibold">المتبقي من الوقت</span>
+                            <span id="remainingCountdown" dir="ltr" class="font-mono text-2xl font-black text-amber-300 tracking-wider">
+                                40:00
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- شريط التقدم المرئي -->
+                    <div class="mt-3">
+                        <div class="flex justify-between text-[11px] font-bold text-teal-100 mb-1">
+                            <span>بداية الحصة</span>
+                            <span id="progressPercentText">0%</span>
+                            <span>نهاية الحصة</span>
+                        </div>
+                        <div class="w-full h-3 bg-black/25 rounded-full overflow-hidden p-0.5">
+                            <div id="periodProgressBar" class="h-full bg-gradient-to-l from-amber-300 via-yellow-400 to-emerald-300 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- الحصة القادمة -->
+                    <div class="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between text-xs text-teal-100">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-forward-step text-amber-300"></i>
+                            <span>التالي:</span>
+                            <strong id="nextPeriodInfo" class="text-white">الحصة الثانية (08:45)</strong>
+                        </div>
+                        <button onclick="speakCurrentStatus()" class="bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-xl text-white font-bold flex items-center gap-1 transition active:scale-95">
+                            <i class="fa-solid fa-volume-high text-xs"></i>
+                            <span>انطق</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- 3. شريط مواقيت الدوام الرسمي (الحصص الست والاستراحة)       -->
+            <!-- ========================================================= -->
+            <section class="bg-white rounded-3xl p-4 shadow-md border border-slate-100">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                            <i class="fa-solid fa-clock"></i>
+                        </span>
+                        <span>توقيت الجرس المدرسي</span>
+                    </h3>
+                    <span class="text-[11px] text-slate-400 font-semibold">6 حصص + استراحة</span>
+                </div>
+
+                <div id="bellScheduleStrip" class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                    <!-- يتم تعبئتها ديناميكياً بالجافاسكريبت -->
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- 4. اختيار المعلم وعرض جدوله الأسبوعي الملون الجذاب       -->
+            <!-- ========================================================= -->
+            <section class="bg-white rounded-3xl p-4 shadow-md border border-slate-100">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </span>
+                        <span>جداول المعلمين الأسبوعية</span>
+                    </h3>
+                    <button onclick="window.print()" title="طباعة جدول المعلم" class="no-print text-xs font-bold text-slate-600 hover:text-teal-700 bg-slate-100 hover:bg-teal-50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-print"></i>
+                        <span>طباعة</span>
+                    </button>
+                </div>
+
+                <!-- قائمة اختيار المعلم -->
+                <div class="mb-3 no-print">
+                    <label for="teacherSelect" class="block text-xs font-bold text-slate-500 mb-1.5">اختر اسم المعلم / المعلمة:</label>
+                    <div class="relative">
+                        <select id="teacherSelect" onchange="selectTeacher(this.value)" class="w-full appearance-none bg-gradient-to-l from-teal-50 to-slate-50 border-2 border-teal-200 focus:border-teal-500 text-slate-800 font-extrabold text-base rounded-2xl py-3 px-4 pr-11 focus:outline-none transition shadow-sm">
+                            <!-- يتم تعبئة أسماء المعلمين الـ 13 تلقائياً -->
+                        </select>
+                        <i class="fa-solid fa-user-tie absolute right-4 top-1/2 -translate-y-1/2 text-teal-600 text-lg pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+
+                    <!-- أزرار سريعة لأسماء المعلمين -->
+                    <div id="teacherQuickPills" class="flex gap-1.5 overflow-x-auto no-scrollbar mt-2.5 pb-1">
+                        <!-- يتم تعبئتها ديناميكياً -->
+                    </div>
+                </div>
+
+                <!-- بطاقة ترويسة المعلم المختار -->
+                <div id="selectedTeacherBanner" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-2xl p-3.5 mb-4 shadow-md flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div id="teacherAvatar" class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-black text-xl border border-white/30">
+                            أ
+                        </div>
+                        <div>
+                            <span class="text-[11px] text-indigo-100 block">الجدول الدراسي الخاص بـ</span>
+                            <h4 id="bannerTeacherName" class="font-black text-lg leading-tight">الأستاذ أنور</h4>
+                        </div>
+                    </div>
+                    <div class="text-left bg-black/20 px-3 py-1.5 rounded-xl">
+                        <span class="block text-[10px] text-indigo-100">نصاب الحصص</span>
+                        <span id="teacherWeeklyCount" class="font-black text-base text-amber-300">20 حصة</span>
+                    </div>
+                </div>
+
+                <!-- تبويبات أيام الأسبوع + عرض الجدول الكامل -->
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-4 no-print" id="dayTabsContainer">
+                    <button onclick="selectDayTab('الأحد')" data-day="الأحد" class="day-tab flex-1 min-w-[60px] py-2 px-2 rounded-xl font-bold text-xs transition">الأحد</button>
+                    <button onclick="selectDayTab('الاثنين')" data-day="الاثنين" class="day-tab flex-1 min-w-[60px] py-2 px-2 rounded-xl font-bold text-xs transition">الاثنين</button>
+                    <button onclick="selectDayTab('الثلاثاء')" data-day="الثلاثاء" class="day-tab flex-1 min-w-[60px] py-2 px-2 rounded-xl font-bold text-xs transition">الثلاثاء</button>
+                    <button onclick="selectDayTab('الأربعاء')" data-day="الأربعاء" class="day-tab flex-1 min-w-[60px] py-2 px-2 rounded-xl font-bold text-xs transition">الأربعاء</button>
+                    <button onclick="selectDayTab('الخميس')" data-day="الخميس" class="day-tab flex-1 min-w-[60px] py-2 px-2 rounded-xl font-bold text-xs transition">الخميس</button>
+                    <button onclick="selectDayTab('ALL')" data-day="ALL" class="day-tab min-w-[74px] py-2 px-2.5 rounded-xl font-extrabold text-xs transition bg-slate-800 text-white">الأسبوع كامل</button>
+                </div>
+
+                <!-- حاوية عرض حصص المعلم الملونة -->
+                <div id="scheduleContentArea" class="space-y-2.5">
+                    <!-- يتم رسم البطاقات الملونة أو الجدول الكامل هنا -->
+                </div>
+            </section>
+        </main>
+
+        <!-- ========================================================= -->
+        <!-- إشعار منبثق (Toast Notification) للتنبيهات المرئية         -->
+        <!-- ========================================================= -->
+        <div id="toastAlert" class="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-50 transform -translate-y-32 opacity-0 transition-all duration-500 pointer-events-none">
+            <div class="bg-slate-900/95 backdrop-blur-md text-white p-4 rounded-3xl shadow-2xl border-2 border-amber-400 flex items-center gap-3.5">
+                <div id="toastIconBox" class="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center text-xl shrink-0 animate-bounce">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 id="toastTitle" class="font-black text-base text-amber-300">تنبيه الجرس المدرسي</h4>
+                    <p id="toastMessage" class="text-xs sm:text-sm text-slate-100 font-semibold mt-0.5">بدأت الحصة الأولى الآن</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- شريط سفلي ثابت للتنقل السريع -->
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2 flex items-center justify-around z-40 no-print shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex flex-col items-center gap-0.5 text-teal-700 font-bold text-[11px] py-1 px-3 rounded-xl">
+                <i class="fa-solid fa-clock text-base"></i>
+                <span>الحصة الآن</span>
+            </button>
+            <button onclick="document.getElementById('teacherSelect').scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-teal-700 font-bold text-[11px] py-1 px-3 rounded-xl">
+                <i class="fa-solid fa-table-cells text-base"></i>
+                <span>جدول المعلم</span>
+            </button>
+            <button onclick="testVoiceAlert('start')" class="flex flex-col items-center gap-0.5 text-emerald-600 font-bold text-[11px] py-1 px-3 rounded-xl">
+                <i class="fa-solid fa-volume-high text-base"></i>
+                <span>جرس البدء</span>
+            </button>
+            <button onclick="toggleSimulatorPanel()" class="flex flex-col items-center gap-0.5 text-indigo-600 font-bold text-[11px] py-1 px-3 rounded-xl">
+                <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                <span>محاكاة</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. البيانات الكاملة لجدول الحصص اليومي لمدرسة شعب البدم الثانوية
+        // =========================================================================
+        const DAILY_PERIODS = [
+            { id: 'p1', num: 1, name: 'الحصة الأولى', shortName: 'الأولى', start: '08:00', end: '08:40', type: 'period' },
+            { id: 't1', num: null, name: 'فترة انتقال', shortName: 'انتقال', start: '08:40', end: '08:45', type: 'transition' },
+            { id: 'p2', num: 2, name: 'الحصة الثانية', shortName: 'الثانية', start: '08:45', end: '09:25', type: 'period' },
+            { id: 't2', num: null, name: 'فترة انتقال', shortName: 'انتقال', start: '09:25', end: '09:30', type: 'transition' },
+            { id: 'p3', num: 3, name: 'الحصة الثالثة', shortName: 'الثالثة', start: '09:30', end: '10:10', type: 'period' },
+            { id: 't3', num: null, name: 'فترة انتقال', shortName: 'انتقال', start: '10:10', end: '10:15', type: 'transition' },
+            { id: 'p4', num: 4, name: 'الحصة الرابعة', shortName: 'الرابعة', start: '10:15', end: '10:55', type: 'period' },
+            { id: 'brk', num: null, name: 'الاستراحة', shortName: 'استراحة', start: '10:55', end: '11:05', type: 'break' },
+            { id: 'p5', num: 5, name: 'الحصة الخامسة', shortName: 'الخامسة', start: '11:05', end: '11:45', type: 'period' },
+            { id: 't5', num: null, name: 'فترة انتقال', shortName: 'انتقال', start: '11:45', end: '11:50', type: 'transition' },
+            { id: 'p6', num: 6, name: 'الحصة السادسة', shortName: 'السادسة', start: '11:50', end: '12:30', type: 'period' },
+            { id: 't6', num: null, name: 'فترة انتقال (للسابعة)', shortName: 'انتقال', start: '12:30', end: '12:35', type: 'transition' },
+            { id: 'p7', num: 7, name: 'الحصة السابعة (إضافية)', shortName: 'السابعة', start: '12:35', end: '13:15', type: 'period_extra' }
+        ];
+
+        // =========================================================================
+        // 2. الجداول الأسبوعية الدقيقة لجميع المعلمين الـ 13 (من ملف Excel المرفق)
+        // =========================================================================
+        const TEACHERS_DATA = {
+            "أنور": {
+                title: "الأستاذ أنور",
+                schedule: {
+                    "الأحد": ["عربي - الثاني عشر", "—", "عربي - الحادي عشر", "عربي - التاسع", "—", "—", "عربي - العاشر"],
+                    "الاثنين": ["عربي - الحادي عشر", "عربي - الثاني عشر", "عربي - التاسع", "عربي - العاشر", "—", "عربي - الحادي عشر", "—"],
+                    "الثلاثاء": ["—", "عربي - الثاني عشر", "—", "عربي - العاشر", "عربي - التاسع", "عربي - الحادي عشر", "عربي - التاسع"],
+                    "الأربعاء": ["عربي - العاشر", "—", "عربي - الحادي عشر", "عربي - الثاني عشر", "عربي - التاسع", "عربي - الثاني عشر", "—"],
+                    "الخميس": ["عربي - التاسع", "عربي - العاشر", "عربي - الثاني عشر", "عربي - الحادي عشر", "—", "—", "—"]
+                }
+            },
+            "أيسر": {
+                title: "الأستاذ أيسر",
+                schedule: {
+                    "الأحد": ["—", "دراسات - الثامن", "—", "دراسات - السابع", "تاريخ - العاشر", "تاريخ - الحادي عشر", "—"],
+                    "الاثنين": ["تاريخ - العاشر", "دراسات - التاسع", "تاريخ - الثاني عشر", "تاريخ - الحادي عشر", "—", "—", "—"],
+                    "الثلاثاء": ["تاريخ - العاشر", "دراسات - السابع", "تاريخ - الثاني عشر", "دراسات - التاسع", "—", "دراسات - الثامن", "—"],
+                    "الأربعاء": ["تاريخ - الثاني عشر", "—", "—", "دراسات - التاسع", "تاريخ - العاشر", "تاريخ - الحادي عشر", "—"],
+                    "الخميس": ["دراسات - السابع", "—", "دراسات - الثامن", "تاريخ - العاشر", "تاريخ - الحادي عشر", "تاريخ - الثاني عشر", "—"]
+                }
+            },
+            "أيمن": {
+                title: "الأستاذ أيمن",
+                schedule: {
+                    "الأحد": ["عربي - الخامس والسادس", "عربي - السابع", "عربي - الثامن", "—", "—", "عربي - الخامس والسادس", "فن - الخامس والسادس"],
+                    "الاثنين": ["عربي - السابع", "—", "عربي - الخامس والسادس", "—", "عربي - السابع", "عربي - الثامن", "مهني - السابع"],
+                    "الثلاثاء": ["عربي - الخامس والسادس", "عربي - الثامن", "—", "—", "—", "عربي - السابع", "فن - الخامس والسادس"],
+                    "الأربعاء": ["عربي - السابع", "عربي - الخامس والسادس", "عربي - الثامن", "عربي - الثامن", "—", "عربي - الخامس والسادس", "مهني - السابع"],
+                    "الخميس": ["—", "عربي - الثامن", "عربي - السابع", "عربي - الخامس والسادس", "عربي - السابع", "—", "—"]
+                }
+            },
+            "رؤيا": {
+                title: "المعلمة رؤيا",
+                schedule: {
+                    "الأحد": ["—", "رياضيات - الثاني عشر", "علوم - الخامس والسادس", "رياضيات - العاشر", "علوم - السابع", "—", "رياضه - الحادي عشر"],
+                    "الاثنين": ["—", "رياضيات - العاشر", "—", "علوم - السابع", "رياضيات - الحادي عشر", "علوم - الخامس والسادس", "—"],
+                    "الثلاثاء": ["رياضيات - الثاني عشر", "رياضيات - الحادي عشر", "علوم - السابع", "—", "رياضيات - العاشر", "علوم - الخامس والسادس", "—"],
+                    "الأربعاء": ["—", "رياضيات - العاشر", "—", "علوم - السابع", "علوم - الخامس والسادس", "—", "رياضة - العاشر"],
+                    "الخميس": ["رياضيات - العاشر", "—", "رياضيات - الحادي عشر", "رياضيات - الثاني عشر", "—", "علوم - السابع", "—"]
+                }
+            },
+            "راشد": {
+                title: "الأستاذ راشد",
+                schedule: {
+                    "الأحد": ["تك - الحادي عشر", "—", "—", "—", "مهني - التاسع", "تك - السابع", "—"],
+                    "الاثنين": ["—", "تك - الخامس والسادس", "—", "تك - الثاني عشر", "تك - الثامن", "تك - العاشر", "رياضة - الثاني عشر"],
+                    "الثلاثاء": ["—", "تك - التاسع", "تك - الخامس والسادس", "تك - الثامن", "—", "—", "فن - العاشر"],
+                    "الأربعاء": ["—", "تك - الثاني عشر", "—", "—", "تك - الحادي عشر", "تك - السابع", "فن - التاسع"],
+                    "الخميس": ["—", "—", "—", "تك - التاسع", "—", "تك - العاشر", "—"]
+                }
+            },
+            "زهير": {
+                title: "الأستاذ زهير",
+                schedule: {
+                    "الأحد": ["علوم - التاسع", "—", "فيزياء - العاشر", "ثقافة - الثاني عشر", "علوم - الثامن", "كيمياء - العاشر", "—"],
+                    "الاثنين": ["—", "علوم - الثامن", "ثقافة - الحادي عشر", "علوم - التاسع", "أحياء - العاشر", "—", "فن - الثامن"],
+                    "الثلاثاء": ["علوم - الثامن", "فيزياء - العاشر", "أحياء - العاشر", "—", "—", "علوم - التاسع", "—"],
+                    "الأربعاء": ["—", "علوم - الثامن", "علوم - التاسع", "كيمياء - العاشر", "ثقافة - الثاني عشر", "—", "—"],
+                    "الخميس": ["ثقافة - الحادي عشر", "—", "فيزياء - العاشر", "—", "علوم - التاسع", "علوم - الثامن", "—"]
+                }
+            },
+            "سامح": {
+                title: "الأستاذ سامح",
+                schedule: {
+                    "الأحد": ["رياضيات - الثامن", "رياضيات - الخامس والسادس", "رياضيات - السابع", "—", "—", "رياضيات - التاسع", "مهني - الثامن"],
+                    "الاثنين": ["رياضيات - الخامس والسادس", "—", "رياضيات - السابع", "رياضيات - الثامن", "—", "رياضيات - التاسع", "رياضة - الخامس والسادس"],
+                    "الثلاثاء": ["رياضيات - السابع", "—", "رياضيات - التاسع", "رياضيات - الخامس والسادس", "رياضيات - الثامن", "—", "مهني - الثامن"],
+                    "الأربعاء": ["رياضيات - التاسع", "رياضيات - السابع", "رياضيات - الخامس والسادس", "—", "رياضيات - الثامن", "—", "رياضة - الخامس والسادس"],
+                    "الخميس": ["رياضيات - الثامن", "رياضيات - التاسع", "—", "رياضيات - السابع", "رياضيات - الخامس والسادس", "—", "—"]
+                }
+            },
+            "سفيان": {
+                title: "الأستاذ سفيان",
+                schedule: {
+                    "الأحد": ["E - السابع", "E - الثالث والرابع", "E - الأول والثاني", "E - الخامس والسادس", "—", "E - الثامن", "رياضة - التاسع"],
+                    "الاثنين": ["E - الثامن", "—", "—", "—", "E - الخامس والسادس", "E - السابع", "—"],
+                    "الثلاثاء": ["E - الثالث والرابع", "—", "E - الثامن", "E - الأول والثاني", "E - السابع", "—", "رياضة - السابع"],
+                    "الأربعاء": ["E - الخامس والسادس", "—", "E - السابع", "—", "—", "E - الثامن", "رياضة - الثامن"],
+                    "الخميس": ["—", "E - الخامس والسادس", "E - الأول والثاني", "E - الثالث والرابع", "E - الثامن", "—", "—"]
+                }
+            },
+            "سناء": {
+                title: "المعلمة سناء",
+                schedule: {
+                    "الأحد": ["رياضيات - الأول والثاني", "رياضيات - الأول والثاني", "—", "رياضيات - الثالث والرابع", "دين - الثالث والرابع", "رياضه - الأول والثاني", "—"],
+                    "الاثنين": ["رياضيات - الثالث والرابع", "علوم - الثالث والرابع", "رياضيات - الأول والثاني", "رياضيات - الثالث والرابع", "وطنية - الأول والثاني", "وطنية - الأول والثاني", "—"],
+                    "الثلاثاء": ["—", "رياضيات - الثالث والرابع", "رياضيات - الأول والثاني", "دين - الثالث والرابع", "وطنية - الأول والثاني", "علوم - الثالث والرابع", "—"],
+                    "الأربعاء": ["رياضيات - الثالث والرابع", "رياضيات - الأول والثاني", "وطنية - الأول والثاني", "رياضه - الثالث والرابع", "علوم - الثالث والرابع", "—", "—"],
+                    "الخميس": ["رياضيات - الثالث والرابع", "رياضيات - الأول والثاني", "دين - الثالث والرابع", "—", "وطنية - الأول والثاني", "—", "—"]
+                }
+            },
+            "مرح": {
+                title: "المعلمة مرح",
+                schedule: {
+                    "الأحد": ["—", "جغرافيا - الحادي عشر", "جغرافيا - الثاني عشر", "—", "دراسات - الخامس والسادس", "جغرافيا - الثاني عشر", "—"],
+                    "الاثنين": ["—", "—", "—", "—", "—", "—", "—"],
+                    "الثلاثاء": ["—", "دراسات - الخامس والسادس", "جغرافيا - الحادي عشر", "جغرافيا - الحادي عشر", "جغرافيا - الثاني عشر", "—", "—"],
+                    "الأربعاء": ["—", "—", "—", "—", "—", "—", "—"],
+                    "الخميس": ["جغرافيا - الثاني عشر", "جغرافيا - الحادي عشر", "دراسات - الخامس والسادس", "—", "—", "دراسات - الخامس والسادس", "—"]
+                }
+            },
+            "موسى": {
+                title: "الأستاذ موسى",
+                schedule: {
+                    "الأحد": ["—", "دين - العاشر", "دين - التاسع", "دين - الثامن", "دين - الحادي عشر", "—", "—"],
+                    "الاثنين": ["دين - التاسع", "دين - السابع", "دين - الثامن", "دين - الخامس والسادس", "دين - الثاني عشر", "—", "دين - العاشر"],
+                    "الثلاثاء": ["دين - الحادي عشر", "—", "—", "دين - السابع", "دين - الخامس والسادس", "دين - الثاني عشر", "—"],
+                    "الأربعاء": ["دين - الثامن", "دين - الحادي عشر", "دين - العاشر", "دين - الخامس والسادس", "دين - السابع", "دين - التاسع", "—"],
+                    "الخميس": ["دين - الخامس والسادس", "دين - السابع", "—", "دين - الثامن", "دين - الثاني عشر", "دين - التاسع", "—"]
+                }
+            },
+            "نزار": {
+                title: "الأستاذ نزار",
+                schedule: {
+                    "الأحد": ["عربي - الثالث والرابع", "—", "عربي - الثالث والرابع", "عربي - الأول والثاني", "عربي - الأول والثاني", "تنشئة - الثالث والرابع", "—"],
+                    "الاثنين": ["عربي - الأول والثاني", "عربي - الأول والثاني", "عربي - الثالث والرابع", "دين - الأول والثاني", "عربي - الثالث والرابع", "تنشئة - الثالث والرابع", "—"],
+                    "الثلاثاء": ["عربي - الأول والثاني", "عربي - الأول والثاني", "عربي - الثالث والرابع", "—", "عربي - الثالث والرابع", "دين - الأول والثاني", "—"],
+                    "الأربعاء": ["عربي - الأول والثاني", "عربي - الثالث والرابع", "عربي - الثالث والرابع", "عربي - الأول والثاني", "دين - الأول والثاني", "—", "—"],
+                    "الخميس": ["عربي - الأول والثاني", "عربي - الثالث والرابع", "—", "عربي - الأول والثاني", "تنشئة - الثالث والرابع", "—", "—"]
+                }
+            },
+            "يوسف": {
+                title: "الأستاذ يوسف",
+                schedule: {
+                    "الأحد": ["E - العاشر", "E - التاسع", "—", "E - الحادي عشر", "E - الثاني عشر", "—", "—"],
+                    "الاثنين": ["E - الثاني عشر", "E - الحادي عشر", "E - العاشر", "—", "E - التاسع", "E - الثاني عشر", "فن - الحادي عشر"],
+                    "الثلاثاء": ["E - التاسع", "—", "—", "E - الثاني عشر", "E - الحادي عشر", "E - العاشر", "—"],
+                    "الأربعاء": ["E - الحادي عشر", "E - التاسع", "E - الثاني عشر", "E - الحادي عشر", "—", "E - العاشر", "—"],
+                    "الخميس": ["—", "E - الثاني عشر", "E - التاسع", "—", "E - العاشر", "E - الحادي عشر", "—"]
+                }
+            }
+        };
+
+        const WEEK_DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس"];
+        const PERIOD_TIMES_LABEL = [
+            "08:00 - 08:40",
+            "08:45 - 09:25",
+            "09:30 - 10:10",
+            "10:15 - 10:55",
+            "11:05 - 11:45",
+            "11:50 - 12:30",
+            "12:35 - 13:15"
+        ];
+
+        // =========================================================================
+        // 3. حالة التطبيق (Application State)
+        // =========================================================================
+        let state = {
+            selectedTeacher: localStorage.getItem('shab_albadm_teacher') || 'أنور',
+            selectedDayTab: 'الأحد',
+            audioUnlocked: false,
+            simMode: false,
+            simOffsetSeconds: 0,
+            lastTriggeredEventKey: null,
+            activePeriodNum: null
+        };
+
+        // =========================================================================
+        // 4. نظام الصوت العالي والجرس المدرسي والنطق العربي (Web Audio + SpeechSynthesis)
+        // =========================================================================
+        let audioCtx = null;
+
+        function unlockAudioSystem() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                // تشغيل نغمة تأكيد لطيفة + تحميل أصوات النطق
+                playSchoolBellChime('confirm');
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const utter = new SpeechSynthesisUtterance("تم تفعيل التنبيهات الصوتية لمدرسة شعب البدم الثانوية");
+                    utter.lang = 'ar-SA';
+                    utter.volume = 1.0;
+                    utter.rate = 1.0;
+                    window.speechSynthesis.speak(utter);
+                }
+
+                state.audioUnlocked = true;
+                document.getElementById('audioStatusIcon').className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+                document.getElementById('audioStatusText').textContent = 'الصوت العالي مفعّل';
+                document.getElementById('audioUnlockBtn').classList.add('ring-2', 'ring-emerald-400');
+
+                requestNotificationPermission();
+            } catch (e) {
+                console.error("Audio unlock error:", e);
+            }
+        }
+
+        // توليد نغمة جرس مدرسي واضح وعالٍ باستخدام Web Audio API (بدون روابط خارجية)
+        function playSchoolBellChime(type = 'start') {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const now = audioCtx.currentTime;
+                const notes = type === 'start' ? [523.25, 659.25, 783.99, 1046.50] :
+                              type === 'end'   ? [880.00, 698.46, 523.25] : [659.25, 880.00];
+
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.16);
+
+                    gain.gain.setValueAtTime(0.001, now + idx * 0.16);
+                    gain.gain.exponentialRampToValueAtTime(0.9, now + idx * 0.16 + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.16 + 0.45);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(now + idx * 0.16);
+                    osc.stop(now + idx * 0.16 + 0.48);
+                });
+            } catch (e) {
+                console.warn("Web Audio bell failed:", e);
+            }
+        }
+
+        // نطق الرسالة الصوتية باللغة العربية بأعلى صوت ممكن
+        function speakLoudArabic(text, bellType = 'start') {
+            playSchoolBellChime(bellType);
+
+            setTimeout(() => {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'ar-SA';
+                    utterance.volume = 1.0; // أعلى صوت
+                    utterance.rate = 0.95;  // سرعة واضحة ومفهومة
+                    utterance.pitch = 1.05;
+
+                    // محاولة اختيار صوت عربي إن وجد
+                    const voices = window.speechSynthesis.getVoices();
+                    const arabicVoice = voices.find(v => v.lang.includes('ar'));
+                    if (arabicVoice) utterance.voice = arabicVoice;
+
+                    window.speechSynthesis.speak(utterance);
+                }
+            }, 650);
+        }
+
+        // إشعارات المتصفح والهاتف + إشعار مرئي داخل التطبيق
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(perm => {
+                    if (perm === 'granted') {
+                        document.getElementById('notifBellIcon').classList.add('text-emerald-600');
+                    }
+                });
+            }
+        }
+
+        function triggerFullAlert(type, periodName, extraDetail = '') {
+            const title = type === 'start' ? `🔔 بدأت ${periodName}` : `🔕 انتهت ${periodName}`;
+            const spokenPhrase = type === 'start'
+                ? `بدأت الحصة. ${periodName}. ${extraDetail}`
+                : `انتهت الحصة. ${periodName}.`;
+
+            const displayMsg = extraDetail ? `${periodName} — ${extraDetail}` : periodName;
+
+            // 1. نطق صوتي عالٍ + جرس
+            speakLoudArabic(spokenPhrase, type);
+
+            // 2. إشعار مرئي منبثق داخل التطبيق
+            showToast(title, displayMsg, type);
+
+            // 3. إشعار نظام الهاتف (Web Notification)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification(`مدرسة شعب البدم الثانوية - ${title}`, {
+                        body: displayMsg,
+                        tag: 'school-bell-alert'
+                    });
+                } catch (e) {}
+            }
+        }
+
+        function showToast(title, message, type = 'start') {
+            const toast = document.getElementById('toastAlert');
+            const iconBox = document.getElementById('toastIconBox');
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+
+            iconBox.className = type === 'start'
+                ? 'w-12 h-12 rounded-2xl bg-emerald-400 text-slate-950 flex items-center justify-center text-xl shrink-0 animate-bounce'
+                : 'w-12 h-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-xl shrink-0 animate-bounce';
+
+            toast.classList.remove('-translate-y-32', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.add('-translate-y-32', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 6000);
+        }
+
+        // أزرار التجربة الفورية للصوت
+        function testVoiceAlert(type) {
+            const dayName = getEffectiveDayName();
+            const teacher = TEACHERS_DATA[state.selectedTeacher];
+            const pIndex = (state.activePeriodNum || 1) - 1;
+            const subject = (teacher && teacher.schedule[dayName] && teacher.schedule[dayName][pIndex]) || '';
+            const cleanSub = (subject && subject !== '—') ? `مادة ${subject} لـ ${teacher.title}` : '';
+
+            if (type === 'start') {
+                triggerFullAlert('start', 'الحصة الأولى', cleanSub);
+            } else {
+                triggerFullAlert('end', 'الحصة الأولى', '');
+            }
+        }
+
+        function speakCurrentStatus() {
+            const periodTitle = document.getElementById('currentPeriodTitle').textContent.trim();
+            const remaining = document.getElementById('remainingCountdown').textContent.trim();
+            const sub = document.getElementById('currentTeacherSubject').textContent.trim();
+            speakLoudArabic(`الآن ${periodTitle}. ${sub}. الوقت المتبقي ${remaining}`, 'confirm');
+        }
+
+        // =========================================================================
+        // 5. محرك الوقت الذكي وحساب الحصص والعداد التنازلي
+        // =========================================================================
+        function timeToSeconds(hhmm) {
+            const [h, m] = hhmm.split(':').map(Number);
+            return h * 3600 + m * 60;
+        }
+
+        function formatSecondsMMSS(totalSec) {
+            if (totalSec < 0) totalSec = 0;
+            const mins = Math.floor(totalSec / 60);
+            const secs = Math.floor(totalSec % 60);
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function getCurrentEffectiveDate() {
+            const now = new Date();
+            if (state.simMode) {
+                return new Date(now.getTime() + state.simOffsetSeconds * 1000);
+            }
+            return now;
+        }
+
+        function getEffectiveDayName() {
+            const d = getCurrentEffectiveDate();
+            const daysAr = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+            const name = daysAr[d.getDay()];
+            return WEEK_DAYS.includes(name) ? name : "الأحد";
+        }
+
+        function updateClockAndPeriodEngine() {
+            const now = getCurrentEffectiveDate();
+            const daysAr = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+            const monthsAr = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+
+            const dayName = daysAr[now.getDay()];
+            const dateStr = `${now.getDate()} ${monthsAr[now.getMonth()]} ${now.getFullYear()}`;
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+
+            document.getElementById('currentDayName').textContent = dayName;
+            document.getElementById('currentDateStr').textContent = dateStr;
+            document.getElementById('liveDigitalClock').textContent = `${hh}:${mm}:${ss}`;
+
+            const currentSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            const isSchoolDay = WEEK_DAYS.includes(dayName);
+
+            // البحث عن الفترة الحالية في الجدول اليومي
+            let currentSlot = null;
+            let nextSlot = null;
+
+            for (let i = 0; i < DAILY_PERIODS.length; i++) {
+                const slot = DAILY_PERIODS[i];
+                const sSec = timeToSeconds(slot.start);
+                const eSec = timeToSeconds(slot.end);
+
+                // فحص لحظة بدء أو انتهاء الحصص لإطلاق التنبيه الصوتي التلقائي
+                if (isSchoolDay && (slot.type === 'period' || slot.type === 'break')) {
+                    if (currentSec === sSec) {
+                        const key = `start_${slot.id}_${hh}:${mm}`;
+                        if (state.lastTriggeredEventKey !== key) {
+                            state.lastTriggeredEventKey = key;
+                            const subDetail = getTeacherSubjectForPeriod(dayName, slot.num);
+                            triggerFullAlert('start', slot.name, subDetail);
+                        }
+                    }
+                    if (currentSec === eSec && slot.type === 'period') {
+                        const key = `end_${slot.id}_${hh}:${mm}`;
+                        if (state.lastTriggeredEventKey !== key) {
+                            state.lastTriggeredEventKey = key;
+                            triggerFullAlert('end', slot.name, '');
+                        }
+                    }
+                }
+
+                if (currentSec >= sSec && currentSec < eSec) {
+                    currentSlot = slot;
+                    nextSlot = DAILY_PERIODS.slice(i + 1).find(s => s.type === 'period' || s.type === 'break') || null;
+                    break;
+                }
+            }
+
+            updateStatusCardUI(currentSlot, nextSlot, currentSec, dayName, isSchoolDay);
+        }
+
+        function getTeacherSubjectForPeriod(dayName, periodNum) {
+            if (!periodNum) return '';
+            const teacher = TEACHERS_DATA[state.selectedTeacher];
+            if (!teacher || !teacher.schedule[dayName]) return '';
+            const item = teacher.schedule[dayName][periodNum - 1];
+            if (!item || item === '—') return `${teacher.title}: حصة فراغ`;
+            return `${teacher.title}: ${item}`;
+        }
+
+        function updateStatusCardUI(currentSlot, nextSlot, currentSec, dayName, isSchoolDay) {
+            const card = document.getElementById('liveStatusCard');
+            const titleEl = document.getElementById('currentPeriodTitle');
+            const rangeEl = document.getElementById('periodTimeRange');
+            const countdownEl = document.getElementById('remainingCountdown');
+            const progressBar = document.getElementById('periodProgressBar');
+            const percentText = document.getElementById('progressPercentText');
+            const nextInfoEl = document.getElementById('nextPeriodInfo');
+            const teacherSubEl = document.getElementById('currentTeacherSubject');
+
+            if (!isSchoolDay) {
+                titleEl.textContent = `عطلة نهاية الأسبوع (${dayName})`;
+                rangeEl.textContent = 'الأحد - الخميس';
+                countdownEl.textContent = '--:--';
+                progressBar.style.width = '0%';
+                percentText.textContent = 'عطلة';
+                nextInfoEl.textContent = 'يبدأ الدوام الأحد 08:00';
+                teacherSubEl.innerHTML = `<i class="fa-solid fa-mug-hot text-amber-300"></i> <span>نتمنى لكم عطلة سعيدة</span>`;
+                state.activePeriodNum = null;
+                return;
+            }
+
+            if (currentSlot) {
+                const sSec = timeToSeconds(currentSlot.start);
+                const eSec = timeToSeconds(currentSlot.end);
+                const totalDuration = eSec - sSec;
+                const elapsed = currentSec - sSec;
+                const remaining = eSec - currentSec;
+                const pct = Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
+
+                titleEl.textContent = currentSlot.name;
+                rangeEl.textContent = `${currentSlot.start} - ${currentSlot.end}`;
+                countdownEl.textContent = formatSecondsMMSS(remaining);
+                progressBar.style.width = `${pct}%`;
+                percentText.textContent = `${pct}%`;
+
+                // تغيير لون البطاقة حسب نوع الفترة
+                if (currentSlot.type === 'break') {
+                    card.className = 'bg-gradient-to-br from-amber-500 via-orange-600 to-rose-600 text-white rounded-3xl p-5 shadow-xl relative overflow-hidden transition-all duration-500';
+                } else if (currentSlot.type === 'transition') {
+                    card.className = 'bg-gradient-to-br from-indigo-600 via-blue-700 to-cyan-800 text-white rounded-3xl p-5 shadow-xl relative overflow-hidden transition-all duration-500';
+                } else {
+                    card.className = 'bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 text-white rounded-3xl p-5 shadow-xl relative overflow-hidden transition-all duration-500';
+                }
+
+                // عرض مادة المعلم في الحصة الحالية
+                if (currentSlot.num) {
+                    const prevActive = state.activePeriodNum;
+                    state.activePeriodNum = currentSlot.num;
+                    const teacher = TEACHERS_DATA[state.selectedTeacher];
+                    const sub = teacher.schedule[dayName] ? teacher.schedule[dayName][currentSlot.num - 1] : '—';
+                    if (sub && sub !== '—') {
+                        teacherSubEl.innerHTML = `<i class="fa-solid fa-book-open text-amber-300"></i> <span>${teacher.title}: <strong class="underline decoration-amber-300">${sub}</strong></span>`;
+                    } else {
+                        teacherSubEl.innerHTML = `<i class="fa-solid fa-mug-saucer text-teal-200"></i> <span>${teacher.title}: استراحة / فراغ</span>`;
+                    }
+                    if (prevActive !== state.activePeriodNum) {
+                        renderScheduleView();
+                        renderBellStrip();
+                    }
+                } else {
+                    state.activePeriodNum = null;
+                    teacherSubEl.innerHTML = `<i class="fa-solid fa-bell text-amber-300"></i> <span>استعد للحصة القادمة</span>`;
+                }
+
+                if (nextSlot) {
+                    nextInfoEl.textContent = `${nextSlot.name} (${nextSlot.start})`;
+                } else {
+                    nextInfoEl.textContent = 'نهاية الدوام المدرسي';
+                }
+            } else {
+                // خارج أوقات الحصص (قبل 08:00 أو بعد 13:15)
+                state.activePeriodNum = null;
+                card.className = 'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 text-white rounded-3xl p-5 shadow-xl relative overflow-hidden transition-all duration-500';
+
+                const firstStart = timeToSeconds('08:00');
+                if (currentSec < firstStart) {
+                    const remToStart = firstStart - currentSec;
+                    titleEl.textContent = 'قبل بدء الحصة الأولى';
+                    rangeEl.textContent = 'يبدأ 08:00';
+                    countdownEl.textContent = formatSecondsMMSS(remToStart);
+                    progressBar.style.width = '0%';
+                    percentText.textContent = 'قريباً';
+                    nextInfoEl.textContent = 'الحصة الأولى (08:00)';
+                    teacherSubEl.innerHTML = `<i class="fa-solid fa-sun text-amber-300"></i> <span>صباح الخير في مدرسة شعب البدم الثانوية</span>`;
+                } else {
+                    titleEl.textContent = 'انتهى الدوام المدرسي';
+                    rangeEl.textContent = '08:00 - 12:30';
+                    countdownEl.textContent = '00:00';
+                    progressBar.style.width = '100%';
+                    percentText.textContent = '100%';
+                    nextInfoEl.textContent = 'غداً الساعة 08:00';
+                    teacherSubEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>اكتملت حصص اليوم بنجاح</span>`;
+                }
+            }
+        }
+
+        // =========================================================================
+        // 6. وظائف محاكاة الوقت (Simulator)
+        // =========================================================================
+        function toggleSimulatorPanel() {
+            const panel = document.getElementById('simulatorPanel');
+            panel.classList.toggle('hidden');
+        }
+
+        function activateSimulatedTime() {
+            const val = document.getElementById('simTimeInput').value;
+            if (!val) return;
+            const parts = val.split(':').map(Number);
+            const targetSec = parts[0] * 3600 + parts[1] * 60 + (parts[2] || 0);
+
+            const realNow = new Date();
+            const realSec = realNow.getHours() * 3600 + realNow.getMinutes() * 60 + realNow.getSeconds();
+
+            state.simOffsetSeconds = targetSec - realSec;
+            state.simMode = true;
+            state.lastTriggeredEventKey = null;
+
+            const badge = document.getElementById('simModeBadge');
+            badge.textContent = 'وضع المحاكاة نشط';
+            badge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-bold';
+
+            updateClockAndPeriodEngine();
+        }
+
+        function quickSim(timeStr) {
+            document.getElementById('simTimeInput').value = timeStr;
+            activateSimulatedTime();
+        }
+
+        function resetToRealTime() {
+            state.simMode = false;
+            state.simOffsetSeconds = 0;
+            state.lastTriggeredEventKey = null;
+
+            const badge = document.getElementById('simModeBadge');
+            badge.textContent = 'الوقت الحقيقي';
+            badge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-300';
+
+            updateClockAndPeriodEngine();
+        }
+
+        // =========================================================================
+        // 7. رسم شريط مواقيت الدوام وجداول المعلمين الملونة
+        // =========================================================================
+        function renderBellStrip() {
+            const container = document.getElementById('bellScheduleStrip');
+            const mainSlots = DAILY_PERIODS.filter(s => s.type === 'period' || s.type === 'break');
+
+            container.innerHTML = mainSlots.map(slot => {
+                const isActive = state.activePeriodNum === slot.num && slot.num !== null;
+                const isBreak = slot.type === 'break';
+
+                let baseStyle = isBreak
+                    ? 'bg-amber-50 border-amber-200 text-amber-800'
+                    : 'bg-slate-50 border-slate-200 text-slate-700';
+
+                if (isActive) {
+                    baseStyle = 'bg-teal-600 border-teal-600 text-white shadow-md scale-105';
+                }
+
+                return `
+                    <div class="shrink-0 px-3 py-2 rounded-2xl border ${baseStyle} text-center min-w-[88px] transition-all">
+                        <div class="text-[11px] font-extrabold">${slot.shortName}</div>
+                        <div dir="ltr" class="text-[10px] font-mono opacity-85 mt-0.5">${slot.start}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function populateTeachersUI() {
+            const select = document.getElementById('teacherSelect');
+            const pills = document.getElementById('teacherQuickPills');
+            const names = Object.keys(TEACHERS_DATA);
+
+            select.innerHTML = names.map(name => `
+                <option value="${name}" ${name === state.selectedTeacher ? 'selected' : ''}>
+                    ${TEACHERS_DATA[name].title}
+                </option>
+            `).join('');
+
+            pills.innerHTML = names.map(name => {
+                const isSelected = name === state.selectedTeacher;
+                return `
+                    <button onclick="selectTeacher('${name}')" class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                        isSelected
+                        ? 'bg-teal-600 text-white shadow-sm'
+                        : 'bg-slate-100 hover:bg-teal-50 text-slate-700'
+                    }">
+                        ${name}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectTeacher(name) {
+            if (!TEACHERS_DATA[name]) return;
+            state.selectedTeacher = name;
+            localStorage.setItem('shab_albadm_teacher', name);
+
+            populateTeachersUI();
+            updateTeacherBanner();
+            renderScheduleView();
+            updateClockAndPeriodEngine();
+        }
+
+        function updateTeacherBanner() {
+            const teacher = TEACHERS_DATA[state.selectedTeacher];
+            document.getElementById('bannerTeacherName').textContent = teacher.title;
+            document.getElementById('teacherAvatar').textContent = state.selectedTeacher.charAt(0);
+
+            // حساب عدد الحصص الأسبوعية للمعلم
+            let count = 0;
+            WEEK_DAYS.forEach(day => {
+                teacher.schedule[day].forEach(cell => {
+                    if (cell && cell !== '—') count++;
+                });
+            });
+            document.getElementById('teacherWeeklyCount').textContent = `${count} حصة`;
+        }
+
+        function selectDayTab(day) {
+            state.selectedDayTab = day;
+            document.querySelectorAll('.day-tab').forEach(btn => {
+                const isTarget = btn.getAttribute('data-day') === day;
+                if (day === 'ALL' && btn.getAttribute('data-day') === 'ALL') {
+                    btn.className = 'day-tab min-w-[74px] py-2 px-2.5 rounded-xl font-extrabold text-xs transition bg-indigo-600 text-white shadow';
+                } else if (isTarget) {
+                    btn.className = 'day-tab flex-1 min-w-[60px] py-2 px-2 rounded-xl font-extrabold text-xs transition bg-teal-600 text-white shadow';
+                } else if (btn.getAttribute('data-day') === 'ALL') {
+                    btn.className = 'day-tab min-w-[74px] py-2 px-2.5 rounded-xl font-extrabold text-xs transition bg-slate-800 text-white';
+                } else {
+                    btn.className = 'day-tab flex-1 min-w-[60px] py-2 px-2 rounded-xl font-bold text-xs transition bg-slate-100 text-slate-600 hover:bg-slate-200';
+                }
+            });
+            renderScheduleView();
+        }
+
+        // تحديد لون مبهج لكل مادة دراسية
+        function getSubjectColorTheme(text) {
+            if (!text || text === '—') {
+                return {
+                    card: 'bg-slate-50 border-slate-200/80 text-slate-400',
+                    badge: 'bg-slate-200/70 text-slate-500',
+                    icon: 'fa-mug-saucer'
+                };
+            }
+            if (text.includes('عربي')) {
+                return {
+                    card: 'bg-gradient-to-l from-emerald-50 to-teal-50 border-emerald-200 text-emerald-950',
+                    badge: 'bg-emerald-600 text-white',
+                    icon: 'fa-feather-pointed'
+                };
+            }
+            if (text.includes('رياضيات')) {
+                return {
+                    card: 'bg-gradient-to-l from-blue-50 to-indigo-50 border-blue-200 text-blue-950',
+                    badge: 'bg-blue-600 text-white',
+                    icon: 'fa-calculator'
+                };
+            }
+            if (text.includes('E -') || text.includes('E')) {
+                return {
+                    card: 'bg-gradient-to-l from-purple-50 to-fuchsia-50 border-purple-200 text-purple-950',
+                    badge: 'bg-purple-600 text-white',
+                    icon: 'fa-language'
+                };
+            }
+            if (text.includes('علوم') || text.includes('فيزياء') || text.includes('كيمياء') || text.includes('أحياء')) {
+                return {
+                    card: 'bg-gradient-to-l from-cyan-50 to-sky-50 border-cyan-200 text-cyan-950',
+                    badge: 'bg-cyan-600 text-white',
+                    icon: 'fa-atom'
+                };
+            }
+            if (text.includes('دين')) {
+                return {
+                    card: 'bg-gradient-to-l from-amber-50 to-yellow-50 border-amber-200 text-amber-950',
+                    badge: 'bg-amber-600 text-white',
+                    icon: 'fa-mosque'
+                };
+            }
+            if (text.includes('تاريخ') || text.includes('جغرافيا') || text.includes('دراسات') || text.includes('وطنية') || text.includes('تنشئة')) {
+                return {
+                    card: 'bg-gradient-to-l from-orange-50 to-amber-50 border-orange-200 text-orange-950',
+                    badge: 'bg-orange-600 text-white',
+                    icon: 'fa-earth-asia'
+                };
+            }
+            if (text.includes('تك')) {
+                return {
+                    card: 'bg-gradient-to-l from-violet-50 to-indigo-50 border-violet-200 text-violet-950',
+                    badge: 'bg-violet-600 text-white',
+                    icon: 'fa-laptop-code'
+                };
+            }
+            // رياضة، فن، مهني، ثقافة
+            return {
+                card: 'bg-gradient-to-l from-rose-50 to-pink-50 border-rose-200 text-rose-950',
+                badge: 'bg-rose-600 text-white',
+                icon: 'fa-palette'
+            };
+        }
+
+        function renderScheduleView() {
+            const container = document.getElementById('scheduleContentArea');
+            const teacher = TEACHERS_DATA[state.selectedTeacher];
+            const todayName = getEffectiveDayName();
+
+            if (state.selectedDayTab === 'ALL') {
+                // عرض الجدول الأسبوعي الكامل بتصميم متجاوب
+                let html = `
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-inner">
+                        <table class="w-full text-right border-collapse min-w-[540px]">
+                            <thead>
+                                <tr class="bg-slate-800 text-white text-xs">
+                                    <th class="p-2.5 font-extrabold">الحصة</th>
+                                    ${WEEK_DAYS.map(d => `<th class="p-2.5 font-extrabold text-center ${d === todayName ? 'bg-teal-600' : ''}">${d}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-xs">
+                `;
+
+                for (let pIdx = 0; pIdx < 7; pIdx++) {
+                    const pNum = pIdx + 1;
+                    html += `<tr class="hover:bg-slate-50">
+                        <td class="p-2 font-black bg-slate-100 text-slate-700 whitespace-nowrap">
+                            <div>الحصة ${pNum}</div>
+                            <div dir="ltr" class="text-[10px] font-mono text-slate-400">${PERIOD_TIMES_LABEL[pIdx]}</div>
+                        </td>`;
+
+                    WEEK_DAYS.forEach(day => {
+                        const cellText = teacher.schedule[day][pIdx] || '—';
+                        const theme = getSubjectColorTheme(cellText);
+                        const isNowCell = (day === todayName && state.activePeriodNum === pNum);
+
+                        html += `<td class="p-1.5 text-center align-middle">
+                            <div class="p-2 rounded-xl border ${theme.card} ${isNowCell ? 'ring-2 ring-teal-500 font-black' : 'font-bold'}">
+                                ${cellText}
+                            </div>
+                        </td>`;
+                    });
+
+                    html += `</tr>`;
+                }
+
+                html += `</tbody></table></div>`;
+                container.innerHTML = html;
+                return;
+            }
+
+            // عرض بطاقات اليوم المختار
+            const dayPeriods = teacher.schedule[state.selectedDayTab] || [];
+            const periodNames = ["الحصة الأولى", "الحصة الثانية", "الحصة الثالثة", "الحصة الرابعة", "الحصة الخامسة", "الحصة السادسة", "الحصة السابعة"];
+
+            container.innerHTML = dayPeriods.map((subject, idx) => {
+                const pNum = idx + 1;
+                const theme = getSubjectColorTheme(subject);
+                const isFree = !subject || subject === '—';
+                const isCurrentLive = (state.selectedDayTab === todayName && state.activePeriodNum === pNum);
+
+                // إضافة فاصل الاستراحة بعد الحصة الرابعة
+                const breakBanner = pNum === 5 ? `
+                    <div class="flex items-center gap-2 py-1.5 px-3 bg-amber-100/80 border border-amber-300 rounded-2xl text-amber-900 text-xs font-extrabold my-1">
+                        <i class="fa-solid fa-mug-hot text-amber-600"></i>
+                        <span>الاستراحة المدرسية (10:55 - 11:05)</span>
+                    </div>
+                ` : '';
+
+                return `
+                    ${breakBanner}
+                    <div class="flex items-center justify-between p-3.5 rounded-2xl border-2 ${theme.card} ${isCurrentLive ? 'active-period-glow ring-2 ring-teal-500 border-teal-500' : ''} transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl ${theme.badge} flex flex-col items-center justify-center shrink-0 shadow-sm">
+                                <span class="text-[10px] leading-none opacity-90">حصة</span>
+                                <span class="font-black text-base leading-tight">${pNum}</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-extrabold text-sm ${isFree ? 'text-slate-400' : ''}">
+                                        ${isFree ? 'حصة فراغ' : subject}
+                                    </span>
+                                    ${isCurrentLive ? '<span class="bg-teal-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">الآن</span>' : ''}
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] opacity-75 mt-0.5 font-semibold">
+                                    <span>${periodNames[idx]}</span>
+                                    <span>•</span>
+                                    <span dir="ltr" class="font-mono">${PERIOD_TIMES_LABEL[idx]}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-lg opacity-60 pl-1">
+                            <i class="fa-solid ${theme.icon}"></i>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // =========================================================================
+        // 8. تهيئة التطبيق عند التحميل
+        // =========================================================================
+        window.onload = function () {
+            state.selectedDayTab = getEffectiveDayName();
+            populateTeachersUI();
+            updateTeacherBanner();
+            selectDayTab(state.selectedDayTab);
+            renderBellStrip();
+            updateClockAndPeriodEngine();
+
+            // تحديث الساعة والعداد التنازلي كل ثانية
+            setInterval(updateClockAndPeriodEngine, 1000);
+        };
+    </script>
+</body>
+</html>
